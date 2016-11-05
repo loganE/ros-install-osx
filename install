@@ -22,14 +22,24 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-ROS_DISTRO=${ROS_DISTRO:-indigo}
-ROS_CONFIGURATION=${ROS_CONFIGURATION:-desktop_full}
-ROS_EXTRA_PACKAGES=${ROS_EXTRA_PACKAGES:-}
+ROS_DISTRO=${ROS_DISTRO:-jade}
+ROS_CONFIGURATION=${ROS_CONFIGURATION:-desktop}
+ROS_EXTRA_PACKAGES=${ROS_EXTRA_PACKAGES:-navigation perception}
 ROS_INSTALL_DIR=${ROS_INSTALL_DIR:-/opt/ros/${ROS_DISTRO}}
 
 do_install()
 {
   set -e
+  	if [[ $(xcode-select --print-path) != "/Library/Developer/CommandLineTools" ]]; then
+		sudo xcode-select -s /Library/Developer/CommandLineTools
+	fi
+
+if [[ $* == *--clean* ]]; then
+	#Removing all pip packages
+	pip freeze | xargs sudo pip uninstall -y
+	# # Uninstall homebrew, warning this will cause trouble for anything linked against older hombrewed libraries
+ 	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)" 
+fi
 
   # Homebrew
   if ! hash brew 2>/dev/null; then
@@ -103,9 +113,9 @@ do_install()
   if [ ! -d /etc/ros/rosdep/ ]; then
     echo "This sudo prompt is to initialize rosdep (creates the /etc/ros/rosdep path)."
     sudo rosdep init
-  fi
-  if [ ! -f /etc/ros/rosdep/10-ros-install-osx.list ]; then
-    echo "This sudo prompt adds the the brewed python rosdep yaml to /etc/ros/rosdep/10-ros-install-osx.list."
+  fi 
+  if [ ! -f /etc/ros/rosdep/sources.list.d/10-ros-install-osx.list ]; then
+    echo "This sudo prompt adds the the brewed python rosdep yaml to /etc/ros/rosdep/sources.list.d/10-ros-install-osx.list."
     sudo sh -c "echo 'yaml https://raw.githubusercontent.com/mikepurvis/ros-install-osx/master/rosdeps.yaml osx' > /etc/ros/rosdep/sources.list.d/10-ros-install-osx.list"
   fi
   rosdep update
@@ -121,7 +131,9 @@ do_install()
   # Standard source install
   rosinstall_generator ${ROS_CONFIGURATION} ${ROS_EXTRA_PACKAGES} --rosdistro ${ROS_DISTRO} --deps --tar > ${WS}.rosinstall
   wstool init -j8 src ${WS}.rosinstall
-
+  wget https://raw.github.com/ros-controls/ros_control/indigo-devel/ros_control.rosinstall
+  wstool merge -t src ros_control.rosinstall
+  wstool up -t src
   # Grabbing these older meshes allows rviz to run with Ogre 1.7 rather than Ogre 1.8+.
   # Some details here: https://github.com/ros-visualization/rviz/issues/782
   if [ -d src/rviz ]; then
@@ -139,7 +151,23 @@ do_install()
     curl https://raw.githubusercontent.com/ros/catkin/8a47f4eceb4954beb4a5b38b50793d0bbe2c96cf/cmake/catkinConfig.cmake.in > catkinConfig.cmake.in
     popd
   fi
+  
+  if [ -d src/perception_pcl/pcl_ros ]; then
+    sed -i -e 's/find_package(Eigen3 REQUIRED)/find_package(PkgConfig)\
+    pkg_search_module(Eigen3 REQUIRED eigen3)/g' src/perception_pcl/pcl_ros/CMakeLists.txt
+fi
 
+#Fixing issue where Eigen cant find eigen (I know right?)
+if [ -d src/eigen_stl_containers/ ]; then
+  sed -i -e 's/find_package(Eigen3 REQUIRED)/find_package(PkgConfig)\
+    pkg_search_module(Eigen3 REQUIRED eigen3)/g' src/eigen_stl_containers/CMakeLists.txt
+fi
+
+#Fixing bad call to vector is ros_comm
+if [ -d src/ross_comm ]; then
+  sed -i -e 's/#include\ <cstdio>/#include\ <cstdio> \#include\ <vector>/g' ~/jade_desktop_ws/src/ros_comm/rosconsole/include/ros/console.h
+fi
+  
   # Package dependencies.
   rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y --as-root pip:no --skip-keys=python-qt-bindings-qwt5
 
@@ -166,6 +194,8 @@ do_install()
   echo "  source ${ROS_INSTALL_DIR}/setup.bash"
   echo
   
+  echo "  source ${ROS_INSTALL_DIR}/setup.bash" >> ~/.bash_profile
+  
   # Check for SIP if on OSX/macOS 10.11 (El Capitan) or later
   if [[ `sw_vers -productVersion` > "10.10" ]]
   then
@@ -178,6 +208,14 @@ do_install()
       echo "To the start of /opt/ros/$ROS_DISTRO/bin/rosrun to work around the issue."
     fi
   fi
+  
+  #Reverting Command Line tools to  Xcode App
+  if [[ $(xcode-select --print-path) != "/Applications/Xcode.app/Contents/Developer" ]]; then
+  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+  fi
+  
+   
+  brew install armadillo  arpack
 }
 
 do_install
