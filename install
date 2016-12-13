@@ -50,13 +50,6 @@ fi
   fi
   brew update
 
-  # XQuartz
-  if ! hash xquartz 2>/dev/null; then
-    brew install caskroom/cask/brew-cask
-    brew cask install xquartz
-    echo "Log out and in to finalize XQuartz setup."
-    exit 0
-  fi
 
   # Check for pip packages in the system Python directory.
   if [ $(ls /Library/Python/2.7/site-packages/ | wc -l) -gt 1 ]; then
@@ -108,7 +101,7 @@ fi
   # ROS infrastructure tools
   brew install libyaml || true
   pip install -U setuptools rosdep rosinstall_generator wstool rosinstall catkin_tools bloom empy sphinx pycurl
-
+  brew install wget
   # Initialize and update rosdep
   if [ ! -d /etc/ros/rosdep/ ]; then
     echo "This sudo prompt is to initialize rosdep (creates the /etc/ros/rosdep path)."
@@ -165,9 +158,11 @@ fi
 
 #Fixing bad call to vector is ros_comm
 if [ -d src/ross_comm ]; then
-  sed -i -e 's/#include\ <cstdio>/#include\ <cstdio> \#include\ <vector>/g' ~/jade_desktop_ws/src/ros_comm/rosconsole/include/ros/console.h
+  sed -i -e 's/#include\ <cstdio>/#include\ <cstdio>\ 
+  #include\ <vector>/g' src/ros_comm/rosconsole/include/ros/console.h
 fi
-  
+
+ brew install cartr/qt4/qt 
   # Package dependencies.
   rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y --as-root pip:no --skip-keys=python-qt-bindings-qwt5
 
@@ -181,7 +176,9 @@ fi
   fi
 
   # Parallel build.
+  #Find_ramework=Last is from https://github.com/mikepurvis/ros-install-osx/issues/73
   catkin config --install  --install-space ${ROS_INSTALL_DIR} --cmake-args \
+ 	-DCMAKE_FIND_FRAMEWORK=LAST \
     -DCATKIN_ENABLE_TESTING=1 \
     -DCMAKE_BUILD_TYPE=Release \
     -DPYTHON_LIBRARY=$(python -c "import sys; print sys.prefix")/lib/libpython2.7.dylib \
@@ -218,4 +215,4 @@ fi
   brew install armadillo  arpack
 }
 
-do_install
+do_install $1
