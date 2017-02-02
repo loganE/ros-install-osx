@@ -6,20 +6,28 @@ This repo aims to maintain a usable, scripted, up-to-date installation procedure
 bare Yosemite or El Capitan machine and produce a working desktop_full installation,
 including RQT, rviz, and Gazebo.
 
-This is the successor to my [popular gist on the same topic][1].
+This install script has been used to install ROS Jade on macOS Sierra on a 2016 Macbook Pro.
+
+This is the based on the original [gist on the same topic][1].
 
 [1]: https://gist.github.com/mikepurvis/9837958
 
 
 Usage
 -----
+Before installing, XCode and the command line tools must be installed. Install XCode 
+through the app store then open the application to accept the user agreement. Once 
+completed, install the command line tools:
 
-    curl https://raw.githubusercontent.com/mikepurvis/ros-install-osx/master/install | bash
-
-or
 
 ```shell
-git clone https://github.com/mikepurvis/ros-install-osx.git
+xcode-select --install
+```
+
+You can install ROS by cloning the git and running the install script:
+
+```shell
+git clone https://github.com/logane/ros-install-osx.git
 cd ros-install-osx
 ./install
 ```
@@ -92,12 +100,6 @@ ls -l $(which python) # Should show a symlink pointing to Homebrew's Cellar
 If you are getting permission errors when you `sudo uninstall` pip packages,
 see [Issue #11](https://github.com/mikepurvis/ros-install-osx/issues/11) and
 [this StackOverflow Q&A](http://stackoverflow.com/a/35051066/2653356).
-
-### El Capitan support
-
-The `install` script may not work as smoothly in OS X El Capitan.
-Here are some pointers, tips, and hacks to help you complete the installation.
-This list was compiled based on the discussion in [Issue #12](https://github.com/mikepurvis/ros-install-osx/issues/12).
 
 #### library not found for -ltbb
 

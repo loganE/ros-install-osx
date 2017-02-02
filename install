@@ -14,7 +14,7 @@
 #   promote products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# WARRANTIES, INCLUDING, BUFT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 # PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
 # ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
 # TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -29,6 +29,25 @@ ROS_INSTALL_DIR=${ROS_INSTALL_DIR:-/opt/ros/${ROS_DISTRO}}
 
 do_install()
 {
+    #Prompting user for xcode install
+    echo
+    echo
+    echo
+    echo "Alright, we're about to install ROS. This script can be run with the --clean argument to clear python and homebrew off for a clean install from scratch (recommended if you run into issues)."
+    echo
+    echo "Before we continue, XCode must be installed. If you haven't, install XCode through the App Store. Once installed, open the application to accept the user agreement. Once you've completed this, enable the command line tools by opening a terminal and typing: "
+    echo
+    echo "xcode-select --install"
+    echo
+    while true; do
+        read -p "Have you installed installed XCode and its command line tools? (y / n) " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) echo "Please install XCode using the given directions, then run the install script again"; exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
   set -e
   	if [[ $(xcode-select --print-path) != "/Library/Developer/CommandLineTools" ]]; then
 		sudo xcode-select -s /Library/Developer/CommandLineTools
@@ -218,4 +237,4 @@ fi
   brew install armadillo  arpack
 }
 
-do_install
+do_install $1
