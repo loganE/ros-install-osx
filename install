@@ -147,6 +147,8 @@ fi
   mkdir $WS
   pushd $WS
 
+  brew install wget
+
   # Standard source install
   rosinstall_generator ${ROS_CONFIGURATION} ${ROS_EXTRA_PACKAGES} --rosdistro ${ROS_DISTRO} --deps --tar > ${WS}.rosinstall
   wstool init -j8 src ${WS}.rosinstall
@@ -184,7 +186,8 @@ fi
 
 #Fixing bad call to vector is ros_comm
 if [ -d src/ross_comm ]; then
-  sed -i -e 's/#include\ <cstdio>/#include\ <cstdio> \#include\ <vector>/g' ~/jade_desktop_ws/src/ros_comm/rosconsole/include/ros/console.h
+   sed -i -e 's/#include\ <cstdio>/#include\ <cstdio>\ 
+   #include\ <vector>/g' src/ros_comm/rosconsole/include/ros/console.h
 fi
   
   # Package dependencies.
@@ -200,7 +203,10 @@ fi
   fi
 
   # Parallel build.
+  #Find_ramework=Last is from https://github.com/mikepurvis/ros-install-osx/issues/73
+
   catkin config --install  --install-space ${ROS_INSTALL_DIR} --cmake-args \
+    -DCMAKE_FIND_FRAMEWORK=LAST
     -DCATKIN_ENABLE_TESTING=1 \
     -DCMAKE_BUILD_TYPE=Release \
     -DPYTHON_LIBRARY=$(python -c "import sys; print sys.prefix")/lib/libpython2.7.dylib \

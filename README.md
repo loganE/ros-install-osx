@@ -8,9 +8,10 @@ including RQT, rviz, and Gazebo.
 
 This install script has been used to install ROS Jade on macOS Sierra on a 2016 Macbook Pro.
 
-This is the based on the original [gist on the same topic][1].
+This is a modified fork of [this original git][1] which was in turn based on the [gist on the same topic][2].
 
-[1]: https://gist.github.com/mikepurvis/9837958
+[1]: https://github.com/mikepurvis/ros-install-osx 
+[2]: https://gist.github.com/mikepurvis/9837958
 
 
 Usage
